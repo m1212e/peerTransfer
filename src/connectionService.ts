@@ -1,5 +1,6 @@
+import {TransferredFile} from './interfaces/transferredFile';
 import Peer from 'peerjs';
-import {makeid} from './helpers';
+import {makeid, saveFile} from './helpers';
 import {writable, get} from 'svelte/store';
 /**
  * true if currently online
@@ -20,7 +21,7 @@ export const loading = writable<boolean>(true);
 /**
  * currently loading
  */
-export const recievedFiles = writable<File[]>([]);
+export const recievedFiles = writable<TransferredFile[]>([]);
 
 const blockedUsers = []
 
@@ -88,17 +89,15 @@ function configureRemoteConnection(conn: Peer.DataConnection) {
     conn.on('open', () => {
         loading.set(false);
     })
-    
-    conn.on('data', (data) => {
-        console.log(data);
-        
-        // recievedFiles.set(get(recievedFiles).concat(data))
+
+    conn.on('data', (data: TransferredFile) => {
+        recievedFiles.set(get(recievedFiles).concat(data))
     })
-    
+
     conn.on('close', () => {
         connectedRemoteClient.set(undefined)
     })
-    
+
     conn.on('error', () => {
         connectedRemoteClient.set(undefined)
     })
@@ -113,7 +112,19 @@ export function blockUser(id: string) {
     blockedUsers.push(id)
 }
 
-export function sendFiles(files: File[]) {
+export function sendFiles(files: FileList) {
+    if (get(connectedRemoteClient) == undefined) {
+        throw 'There is no connection established!'
+    }
+
+    for (let i = 0; i < files.length; i++) {
+        get(connectedRemoteClient).send({
+            name: files[i].name,
+            data: files[i]
+        } as TransferredFile)
+    }
+
+
+
     // get(connectedRemoteClient).send('hallooooo')
-    get(connectedRemoteClient).send(files)
 }

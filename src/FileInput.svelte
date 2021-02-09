@@ -1,9 +1,17 @@
-<script>
+<script lang="ts">
   import { sendFiles } from "./connectionService";
-  let files;
+
+  function processFiles(event) {
+    sendFiles(event.target.files);
+  }
 </script>
 
-<input type="file" class="container" id="fileinput" bind:files on:input={() => sendFiles(files)}/>
+<input
+  multiple
+  type="file"
+  class="container"
+  on:input={(i) => processFiles(i)}
+/>
 
 <style>
   .container {
