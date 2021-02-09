@@ -1,7 +1,8 @@
 <script lang="ts">
-import { recievedFiles } from "./connectionService";
+  import { recievedFiles } from "./connectionService";
 
   import FileInput from "./FileInput.svelte";
+  import { saveFile } from "./helpers";
   import UserInfo from "./UserInfo.svelte";
 </script>
 
@@ -9,7 +10,9 @@ import { recievedFiles } from "./connectionService";
   <UserInfo />
   <FileInput />
   {#each $recievedFiles as file}
-    <h1>{file.name}</h1>
+    <button style="cursor: pointer;" on:click={() => saveFile(file)}>
+      <h1>{file.name}</h1>
+    </button>
   {/each}
 </div>
 
