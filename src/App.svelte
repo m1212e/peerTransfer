@@ -1,29 +1,29 @@
 <script lang="ts">
-    import {
-        connectedToServer,
-        connectedRemoteClientIncoming,
-        endCurrentConnection,
-        ownID,
-        startConnectionWith,
-        loading,
-    } from "./connectionService";
-
-    let value = "";
+  import FileInput from './FileInput.svelte';
+  import UserInfo from './UserInfo.svelte';
 </script>
 
-{#if $loading}
-   <h1> loading...</h1>
-{/if}
+<style>
+  #imageSource {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    color: white;
+    font-size: .8rem;
+  }
 
-<h1>{$connectedToServer}</h1>
-<h1>{$ownID}</h1>
-<h1>Connected Client: {$connectedRemoteClientIncoming?.peer}</h1>
+  .container {
+    display: grid;
+    place-items: center;
+  }
+</style>
 
-<input type="text" bind:value />
-<button
-    on:click={() => {
-        startConnectionWith(value);
-        value = "";
-    }}>Connect!</button
->
-<button on:click={() => endCurrentConnection()}>Verbindung abbrechen</button>
+
+<div class='container'>
+  <UserInfo />
+  <FileInput />
+</div>
+
+<a href='https://www.reddit.com/r/wallpaper/comments/czy4y7/digital_art_3840_x_2160/' id='imageSource'>
+  https://www.reddit.com/r/wallpaper/comments/czy4y7/digital_art_3840_x_2160/
+</a>
