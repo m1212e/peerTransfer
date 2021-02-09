@@ -1,6 +1,6 @@
 <script>
   import {
-    connectedRemoteClientOutgoing,
+    connectedRemoteClient,
     connectedToServer,
     endCurrentConnection,
     ownID,
@@ -15,10 +15,10 @@
 
   {#if $connectedToServer}
     <!-- Anmelden an Server erfolgreich abgeschlossen -->
-    {#if $connectedRemoteClientOutgoing != undefined}
+    {#if $connectedRemoteClient != undefined}
       <div class="connect">
         <span class="text">
-          Connected with: {$connectedRemoteClientOutgoing?.peer}
+          Connected with: {$connectedRemoteClient?.peer}
         </span>
         <button on:click={() => endCurrentConnection()}>Disconnect</button>
       </div>

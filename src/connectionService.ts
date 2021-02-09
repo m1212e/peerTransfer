@@ -10,13 +10,9 @@ export const connectedToServer = writable<boolean>(false);
  */
 export const ownID = writable<string>(undefined);
 /**
- * object of the incoming connection
+ * object of the connection
  */
-export const connectedRemoteClientIncoming = writable<Peer.DataConnection>(undefined);
-/**
- * object of the outgoing connection
- */
-export const connectedRemoteClientOutgoing = writable<Peer.DataConnection>(undefined);
+export const connectedRemoteClient = writable<Peer.DataConnection>(undefined);
 /**
  * currently loading
  */
@@ -28,8 +24,14 @@ export const recievedFiles = writable<File[]>([]);
 
 const blockedUsers = []
 
+let id = localStorage.getItem('storedID')
 
-let peerClient = new Peer(makeid(9));
+if (id != undefined) {//TODO: invert ist nur für Debug
+    id = makeid(9)
+    localStorage.setItem('storedID', id)
+}
+
+let peerClient = new Peer(id);
 
 peerClient.on('open', () => {
     connectedToServer.set(true);
@@ -39,76 +41,79 @@ peerClient.on('open', () => {
 
 peerClient.on('connection', (connection) => {
 
-    if (get(connectedRemoteClientIncoming) != undefined
+    if (get(connectedRemoteClient) != undefined
         || blockedUsers.some(id => connection.peer == id)) {
         connection.close()
     } else {
-        connectedRemoteClientIncoming.set(connection)
-        if (get(connectedRemoteClientOutgoing) == undefined) {
-            console.log('called');
-            startConnectionWith(connection.peer)
-        }
+        configureRemoteConnection(connection)
     }
 })
 
 peerClient.on('error', () => {
     console.error('Client errored, trying again...');
     connectedToServer.set(false);
-    connectedRemoteClientIncoming.set(undefined)
-    connectedRemoteClientOutgoing.set(undefined)
+    connectedRemoteClient.set(undefined)
     ownID.set(undefined)
 
-    //retry
+    //retry once with new id
     setTimeout(() => {
-        peerClient = new Peer(makeid(9));
+        const id = makeid(9)
+        peerClient = new Peer(id);
+        localStorage.setItem('storedID', id)
     }, 3000);
 })
 
 peerClient.on('disconnected', () => {
     connectedToServer.set(false);
     ownID.set(undefined)
-    connectedRemoteClientIncoming.set(undefined)
-    connectedRemoteClientOutgoing.set(undefined)
+    connectedRemoteClient.set(undefined)
 })
 
 export function startConnectionWith(id: string) {
-    if (id == get(ownID)) {
-        throw 'You can\'t create a connection with yourself!'
+    if (get(connectedRemoteClient) != undefined) {
+        throw 'You already have an active connection!'
     }
 
-    loading.set(true);
-
+    if (id == get(ownID)) {
+        throw 'You can\'t create a connection with youself!'
+    }
     const conn = peerClient.connect(id)
-    connectedRemoteClientOutgoing.set(conn)
+    configureRemoteConnection(conn)
+}
+
+function configureRemoteConnection(conn: Peer.DataConnection) {
+    loading.set(true);
+    connectedRemoteClient.set(conn)
 
     conn.on('open', () => {
         loading.set(false);
     })
-
+    
     conn.on('data', (data) => {
-        recievedFiles.set(get(recievedFiles).concat(data))
+        console.log(data);
+        
+        // recievedFiles.set(get(recievedFiles).concat(data))
     })
-
+    
     conn.on('close', () => {
-        connectedRemoteClientIncoming.set(undefined)
+        connectedRemoteClient.set(undefined)
     })
-
+    
     conn.on('error', () => {
-        connectedRemoteClientIncoming.set(undefined)
+        connectedRemoteClient.set(undefined)
     })
 }
 
 export function endCurrentConnection() {
-    get(connectedRemoteClientIncoming)?.close()
-    get(connectedRemoteClientOutgoing)?.close()
-    connectedRemoteClientIncoming.set(undefined)
-    connectedRemoteClientOutgoing.set(undefined)
+    get(connectedRemoteClient)?.close()
+    connectedRemoteClient.set(undefined)
 }
 
 export function blockUser(id: string) {
     blockedUsers.push(id)
 }
 
-export function sendFiles(files: File[]){
-    get(connectedRemoteClientOutgoing).send(files)
+export function sendFiles(files: File[]) {
+    // get(connectedRemoteClient).send('hallooooo')
+    get(connectedRemoteClient).send(files)
 }
