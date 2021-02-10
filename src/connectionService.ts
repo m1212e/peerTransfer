@@ -1,6 +1,6 @@
-import {TransferredFile} from './interfaces/transferredFile';
+import type {TransferredFile} from './interfaces/transferredFile';
 import Peer from 'peerjs';
-import {makeid, saveFile} from './helpers';
+import {makeid} from './helpers';
 import {writable, get} from 'svelte/store';
 /**
  * true if currently online
@@ -27,7 +27,7 @@ const blockedUsers = []
 
 let id = localStorage.getItem('storedID')
 
-if (id != undefined) {//TODO: invert ist nur für Debug
+if (id == undefined) {//TODO: invert ist nur für Debug
     id = makeid(9)
     localStorage.setItem('storedID', id)
 }
